@@ -1,0 +1,5 @@
+{
+  "name": "TaskFlow AI",
+  "description": "A multi-view task tracker (Calendar, Kanban, Grid) powered by Gemini to help organize your life and track consistency.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,4 @@
+Flask==3.0.0
+# Flask-SQLAlchemy removed; moved to server/requirements.txt and replaced with sqlite usage
+Flask-Cors==4.0.0
+Werkzeug==3.0.1
