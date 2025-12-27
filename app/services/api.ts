@@ -1,6 +1,9 @@
+/// <reference types="vite/client" />
 import { Task } from '../types';
 
-const API_URL = 'http://localhost:5000/api';
+// Use Vite env var `VITE_API_URL` for production builds. If not set, fall back to localhost.
+// Example for production: VITE_API_URL=https://api.yourdomain.com/api
+const API_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:5000/api';
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');
