@@ -100,6 +100,8 @@ const App: React.FC = () => {
       date: formData.get('date') as string,
       startTime: formData.get('startTime') as string,
       endTime: formData.get('endTime') as string,
+      actualStartTime: (formData.get('actualStartTime') as string) || undefined,
+      actualEndTime: (formData.get('actualEndTime') as string) || undefined,
       category: formData.get('category') as Category,
       status: 'todo' as TaskStatus
     };
@@ -294,6 +296,16 @@ const App: React.FC = () => {
                     <input name="endTime" type="time" className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none" />
                  </div>
               </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Actual Start (optional)</label>
+                    <input name="actualStartTime" type="time" className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Actual End (optional)</label>
+                    <input name="actualEndTime" type="time" className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none" />
+                  </div>
+                </div>
               
               <button type="submit" className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors mt-2">
                 Create Task

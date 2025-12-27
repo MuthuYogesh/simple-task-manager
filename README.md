@@ -7,7 +7,7 @@ You can **copy–paste this entire content** into `README.md` and commit it.
 # 🧠 TaskFlow AI – Simple Task Manager
 
 TaskFlow AI is a minimal **task management application** built with a modern frontend and a lightweight backend.  
-It uses **SQLite** for persistence and integrates **Google Gemini** for AI-powered features.
+The server uses **PostgreSQL** for persistence (Neon recommended) and integrates **Google Gemini** for AI-powered features.
 
 Built using **Google AI Studio + Copilot Agent**, with additional custom work by me 😊
 
@@ -24,7 +24,7 @@ Built using **Google AI Studio + Copilot Agent**, with additional custom work by
 ### Backend
 - Python
 - Flask
-- SQLite (no SQLAlchemy / ORM)
+- PostgreSQL (psycopg2) — configured via `DATABASE_URL`
 
 ### AI
 - Google Gemini API
@@ -43,9 +43,9 @@ taskflow-ai/
 │   ├── .env.local
 │   └── package.json
 │
-├── server/                 # Backend (Flask + SQLite)
+├── server/                 # Backend (Flask + Postgres via DATABASE_URL)
 │   ├── app.py
-│   ├── taskflow.db
+│   ├── db.py
 │   ├── requirements.txt
 │   └── .venv/
 │
@@ -101,51 +101,57 @@ http://localhost:5173
 
 ---
 
-## 🐍 Backend Setup (Flask + SQLite)
+## 🐍 Backend Setup (Flask + PostgreSQL / Neon)
+
+The backend expects a full `DATABASE_URL` environment variable (Neon or any Postgres-compatible URL). See `server/db.py` which uses `psycopg2` and requires `DATABASE_URL`.
+
+Recommended: create a free Neon PostgreSQL instance and use the provided connection string.
+
+### Quick steps (Neon)
+
+1. Create a Neon project at https://neon.tech and create a database branch.
+2. From the Neon dashboard, copy the Postgres connection string (it looks like `postgresql://<user>:<password>@<host>:<port>/<database>`).
+
+### Local server setup
 
 ```bash
 cd server
-```
-
-### Create Virtual Environment
-
-```bash
 python -m venv .venv
-```
-
-### Activate Virtual Environment
-
-**Windows (PowerShell):**
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-**Windows (CMD):**
-
-```cmd
-.\.venv\Scripts\activate.bat
-```
-
-**Linux / macOS:**
-
-```bash
 source .venv/bin/activate
-```
-
-### Install Dependencies
-
-```bash
 pip install -r requirements.txt
 ```
 
-### Run Backend Server
+Create a `.env` file in `server/` with your Neon `DATABASE_URL`:
+
+```
+server/.env
+```
+
+Example `.env` contents:
+
+```env
+DATABASE_URL="postgresql://<user>:<password>@<host>:<port>/<database>?sslmode=require"
+PORT=5000
+```
+
+Notes:
+- The code uses `psycopg2.connect(DATABASE_URL, sslmode="require")`, so including `?sslmode=require` is optional but harmless.
+- If you prefer environment export instead of a file, run:
+
+```bash
+export DATABASE_URL="postgresql://<user>:<password>@<host>:<port>/<database>?sslmode=require"
+export PORT=5000
+```
+
+### Run the backend
 
 ```bash
 flask run
+# or
+python app.py
 ```
 
-Backend runs on:
+Default backend URL:
 
 ```
 http://127.0.0.1:5000
@@ -171,7 +177,7 @@ Returns backend status.
 POST /api/init
 ```
 
-Creates the SQLite database and tables
+Creates the Postgres tables if they do not exist
 (useful for first run or CI).
 
 ---
@@ -246,10 +252,9 @@ DELETE /api/tasks/<id>
 
 ## 🗄️ Database
 
-* **Engine**: SQLite
-* **File**: `taskflow.db`
-* **Location**: `/server/taskflow.db`
-* No ORM — uses Python’s built-in `sqlite3`
+- **Engine**: PostgreSQL (Neon recommended)
+- **Config**: Provide a full `DATABASE_URL` in `server/.env` or environment
+- The app uses `psycopg2` and `RealDictCursor` for JSON-friendly rows
 
 ---
 

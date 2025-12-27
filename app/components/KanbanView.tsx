@@ -83,9 +83,15 @@ const KanbanView: React.FC<ViewProps> = ({ tasks, onUpdateStatus }) => {
                         </div>
                     )}
                   </div>
-                  {task.pendingReason && (
+                  {(task as any).pendingItems && (
                     <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-amber-600 italic">
-                        "{task.pendingReason}"
+                        "{(task as any).pendingItems}"
+                    </div>
+                  )}
+                  {/* show completed items when available */}
+                  {(task as any).completedItems && (
+                    <div className="mt-2 text-xs text-emerald-700 italic">
+                        "{(task as any).completedItems}"
                     </div>
                   )}
                 </div>

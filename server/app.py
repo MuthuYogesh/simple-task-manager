@@ -1,15 +1,19 @@
 import os
-import sqlite3
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, abort, g
 from flask_cors import CORS
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from secrets import token_hex
+# load local .env (if present) so DATABASE_URL from server/.env is available
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+
 from db import get_connection, init_db, row_to_dict, get_user_by_token, get_user_by_username, create_user, set_user_token
 from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
+
 
 # Ensure DB and migrations are applied for all server start methods
 # Some Flask installations (used by the CLI) may not expose `before_first_request` at import time,
@@ -100,7 +104,7 @@ def list_tasks():
     user_id = g.user['id']
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM tasks WHERE user_id = ? ORDER BY id DESC", (user_id,))
+    cur.execute("SELECT * FROM tasks WHERE user_id = %s ORDER BY id DESC", (user_id,))
     rows = cur.fetchall()
     conn.close()
     return jsonify([row_to_dict(r) for r in rows])
@@ -117,6 +121,14 @@ def create_task():
         data['start_time'] = data['startTime']
     if 'endTime' in data and 'end_time' not in data:
         data['end_time'] = data['endTime']
+    if 'actualStartTime' in data and 'actual_start_time' not in data:
+        data['actual_start_time'] = data['actualStartTime']
+    if 'actualEndTime' in data and 'actual_end_time' not in data:
+        data['actual_end_time'] = data['actualEndTime']
+    if 'completedItems' in data and 'completed_items' not in data:
+        data['completed_items'] = data['completedItems']
+    if 'pendingItems' in data and 'pending_items' not in data:
+        data['pending_items'] = data['pendingItems']
 
     title = data.get("title")
     if not title:
@@ -142,12 +154,12 @@ def create_task():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO tasks (title, description, status, due_date, start_date, start_time, end_time, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        (title, description, status, due_date, start_date, start_time, end_time, user_id),
+        "INSERT INTO tasks (title, description, status, due_date, start_date, start_time, end_time, actual_start_time, actual_end_time, completed_items, pending_items, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
+        (title, description, status, due_date, start_date, start_time, end_time, data.get('actual_start_time'), data.get('actual_end_time'), data.get('completed_items'), data.get('pending_items'), user_id),
     )
+    task_id = cur.fetchone()['id']
     conn.commit()
-    task_id = cur.lastrowid
-    cur.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user_id))
+    cur.execute("SELECT * FROM tasks WHERE id = %s AND user_id = %s", (task_id, user_id))
     row = cur.fetchone()
     conn.close()
     return jsonify(row_to_dict(row)), 201
@@ -159,7 +171,7 @@ def get_task(task_id: int):
     user_id = g.user['id']
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user_id))
+    cur.execute("SELECT * FROM tasks WHERE id = %s AND user_id = %s", (task_id, user_id))
     row = cur.fetchone()
     conn.close()
     if not row:
@@ -182,22 +194,26 @@ def update_task(task_id: int):
     fields = []
     values = []
     # include scheduling fields
-    for key in ("title", "description", "status", "due_date", "start_date", "start_time", "end_time"):
+    for key in ("title", "description", "status", "due_date", "start_date", "start_time", "end_time", "actual_start_time", "actual_end_time", "completed_items", "pending_items"):
         if key in data:
-            fields.append(f"{key} = ?")
+            fields.append(f"{key} = %s")
             values.append(data[key])
     if not fields:
         abort(400, "no fields to update")
-    values.append(task_id)
     user_id = g.user['id']
     conn = get_connection()
     cur = conn.cursor()
     # include user_id guard so a user can't update another user's task
-    cur.execute(f"UPDATE tasks SET {', '.join(fields)}, updated_at = datetime('now') WHERE id = ? AND user_id = ?", tuple(values + [user_id]))
+    # execute update with Postgres placeholders and use now() for timestamp
+    set_clause = ', '.join([f"{f.split(' = ')[0]} = %s" for f in fields])
+    cur.execute(
+        f"UPDATE tasks SET {set_clause}, updated_at = now() WHERE id = %s AND user_id = %s",
+        tuple(values + [task_id, user_id]),
+    )
     conn.commit()
     if cur.rowcount == 0:
         abort(404)
-    cur.execute("SELECT * FROM tasks WHERE id = ? AND user_id = ?", (task_id, user_id))
+    cur.execute("SELECT * FROM tasks WHERE id = %s AND user_id = %s", (task_id, user_id))
     row = cur.fetchone()
     conn.close()
     if not row:
@@ -211,7 +227,7 @@ def delete_task(task_id: int):
     user_id = g.user['id']
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("DELETE FROM tasks WHERE id = ? AND user_id = ?", (task_id, user_id))
+    cur.execute("DELETE FROM tasks WHERE id = %s AND user_id = %s", (task_id, user_id))
     changed = cur.rowcount
     conn.commit()
     conn.close()

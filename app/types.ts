@@ -8,9 +8,12 @@ export interface Task {
   date: string; // YYYY-MM-DD
   startTime?: string; // HH:mm
   endTime?: string; // HH:mm
+  actualStartTime?: string; // HH:mm - actual manual start
+  actualEndTime?: string; // HH:mm - actual manual end
   status: TaskStatus;
   category: Category;
-  pendingReason?: string; // For partially complete tasks
+  pendingItems?: string; // For partially complete tasks: what is pending
+  completedItems?: string; // For completed tasks: what was completed
 }
 
 export interface ViewProps {

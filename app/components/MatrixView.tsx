@@ -105,19 +105,33 @@ const MatrixView: React.FC<ViewProps> = ({ tasks, onUpdateTask, onDelete }) => {
 
                     {/* Partial Reason Input */}
                     {task.status === 'partially-complete' && (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-                        <label className="text-[10px] uppercase font-bold text-amber-700 mb-1 block">
-                          Why is it pending?
-                        </label>
-                        <input 
-                          type="text" 
-                          value={task.pendingReason || ''}
-                          onChange={(e) => onUpdateTask(task.id, { pendingReason: e.target.value })}
-                          placeholder="e.g. Ran out of time..."
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-200 space-y-2">
+                        <label className="text-[10px] uppercase font-bold text-amber-700 mb-1 block">What did you complete?</label>
+                        <textarea
+                          value={(task as any).completedItems || ''}
+                          onChange={(e) => onUpdateTask(task.id, { completedItems: e.target.value })}
+                          placeholder="e.g. Solved 3 problems"
                           className="w-full text-xs p-2 border border-amber-200 rounded bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          rows={2}
+                        />
+                        <label className="text-[10px] uppercase font-bold text-amber-700 mb-1 block">What remains pending?</label>
+                        <textarea
+                          value={(task as any).pendingItems || ''}
+                          onChange={(e) => onUpdateTask(task.id, { pendingItems: e.target.value })}
+                          placeholder="e.g. Need to review solutions"
+                          className="w-full text-xs p-2 border border-amber-200 rounded bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          rows={2}
                         />
                       </div>
                     )}
+
+                    {/* Actual start/end time editing */}
+                    <div className="mt-2 space-y-1">
+                      <label className="text-[10px] font-medium text-gray-600">Actual Start</label>
+                      <input type="time" value={(task as any).actualStartTime || ''} onChange={(e) => onUpdateTask(task.id, { actualStartTime: e.target.value })} className="w-full text-xs p-2 border rounded" />
+                      <label className="text-[10px] font-medium text-gray-600">Actual End</label>
+                      <input type="time" value={(task as any).actualEndTime || ''} onChange={(e) => onUpdateTask(task.id, { actualEndTime: e.target.value })} className="w-full text-xs p-2 border rounded" />
+                    </div>
                     
                     {/* Status Text Label */}
                     <div className="flex justify-between items-center pt-2 border-t border-gray-100/50">

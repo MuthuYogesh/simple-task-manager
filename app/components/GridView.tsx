@@ -8,9 +8,10 @@ const GridView: React.FC<ViewProps> = ({ tasks, onToggleStatus, onDelete }) => {
 
   const handleExport = () => {
     const headers = ['ID', 'Title', 'Date', 'Start Time', 'End Time', 'Category', 'Status', 'Pending Notes'];
-    const csvContent = "data:text/csv;charset=utf-8," 
-        + headers.join(",") + "\n"
-        + tasks.map(t => `${t.id},"${t.title}",${t.date},${t.startTime || ''},${t.endTime || ''},${t.category},${t.status},"${t.pendingReason || ''}"`).join("\n");
+      const headersFull = ['ID', 'Title', 'Date', 'Start Time', 'End Time', 'Category', 'Status', 'Completed Items', 'Pending Items'];
+      const csvContent = "data:text/csv;charset=utf-8," 
+        + headersFull.join(",") + "\n"
+        + tasks.map(t => `${t.id},"${t.title}",${t.date},${t.startTime || ''},${t.endTime || ''},${t.category},${t.status},"${(t as any).completedItems || ''}","${(t as any).pendingItems || ''}"`).join("\n");
     
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -66,11 +67,11 @@ const GridView: React.FC<ViewProps> = ({ tasks, onToggleStatus, onDelete }) => {
                         {task.title}
                       </span>
                     </div>
-                    {task.pendingReason && task.status === 'partially-complete' && (
-                        <div className="flex items-center gap-1 text-xs text-amber-600 ml-8 bg-amber-50 px-2 py-0.5 rounded w-fit">
-                            <AlertTriangle size={10} />
-                            {task.pendingReason}
-                        </div>
+                    {task.status === 'partially-complete' && ( (task as any).pendingItems || '' ) && (
+                      <div className="flex items-center gap-1 text-xs text-amber-600 ml-8 bg-amber-50 px-2 py-0.5 rounded w-fit">
+                        <AlertTriangle size={10} />
+                        {(task as any).pendingItems}
+                      </div>
                     )}
                   </div>
                 </td>
