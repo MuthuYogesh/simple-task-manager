@@ -12,7 +12,14 @@ from db import get_connection, init_db, row_to_dict, get_user_by_token, get_user
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)
+
+frontend = os.environ.get("FRONTEND_URL")
+if frontend:
+    # restrict API access to the single frontend origin (set FRONTEND_URL in env)
+    CORS(app, resources={r"/api/*": {"origins": frontend}}, supports_credentials=True)
+else:
+    # fallback for local dev if FRONTEND_URL is not set
+    CORS(app)
 
 
 # Ensure DB and migrations are applied for all server start methods
