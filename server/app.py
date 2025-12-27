@@ -13,13 +13,26 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-frontend = os.environ.get("FRONTEND_URL")
-if frontend:
-    # restrict API access to the single frontend origin (set FRONTEND_URL in env)
-    CORS(app, resources={r"/api/*": {"origins": frontend}}, supports_credentials=True)
-else:
-    # fallback for local dev if FRONTEND_URL is not set
-    CORS(app)
+# 1. Neon DB Connection Fix (Standardizing the URL)
+database_url = os.getenv("DATABASE_URL")
+frontend_url = os.getenv("FRONTEND_URL")
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+
+# 2. Advanced CORS Setup
+# This allows your specific Vercel frontend to send Cookies, Headers, and JSON
+CORS(app, resources={
+    r"/*": {
+        "origins": [frontend_url] if frontend_url else ["http://localhost:3000"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
+
+@app.route('/')
+def index():
+    return {"status": "Backend is running!"}
 
 
 # Ensure DB and migrations are applied for all server start methods
