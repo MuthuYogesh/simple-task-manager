@@ -3,11 +3,15 @@ import psycopg2
 import psycopg2.extras
 from typing import Optional
 import datetime
+import os
+
 
 # Expect a full DATABASE_URL (Neon) in the environment, e.g.:
 # postgres://... or postgresql://...
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 def get_connection():
     if not DATABASE_URL:
