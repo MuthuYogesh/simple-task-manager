@@ -3,3 +3,5 @@ windows/
 __pycache__/
 taskflow.db
 .env
+venv-linux/
+*.db;
