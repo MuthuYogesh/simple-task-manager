@@ -1,4 +1,5 @@
-.venv/
+.venv-linux/
+windows/
 __pycache__/
 taskflow.db
 .env
