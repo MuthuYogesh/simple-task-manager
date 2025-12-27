@@ -24,7 +24,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 # This allows your specific Vercel frontend to send Cookies, Headers, and JSON
 CORS(app, resources={
     r"/*": {
-        "origins": [frontend_url] if frontend_url else ["http://localhost:3000"],
+        "origins": ["*"] if frontend_url else ["http://localhost:3000"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
